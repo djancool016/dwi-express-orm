@@ -48,17 +48,20 @@ arsitektur yang digunakan dalam project ini adalah Modular Monolithic Architectu
 1. Table Migration
 ```mermaid
 graph TD
-    A[runMigrations] -->|Invokes| B[MigrationQueryBuilder]
-    B -->|Uses| C[CreateTableQueryBuilder]
-    B -->|Generates Queries| D[Migration SQL Queries]
-    B -->|Generates Enum| E[createEnumQuery]
-    B -->|Create Trigger| F[createTriggerQuery]
-    B -->|If Trigger Exist| G[dropTriggerQuery]
-    C -->|Builds| H[Table Creation Query]
-    H -->|Includes| I[Column Definitions]
-    I -->|Includes| J[columnName, dataType, nullable, unique, autoIncrement]
-    G -->|Updates| K[Trigger Functions]
-    D -->|Executes| L[Database]
+    A[runMigration] -->|Invokes| B[MigrationQueryBuilder]
+    B -->|Uses| C[Migration Blueprint]
+    C -->|Checks| D{Timestamp Exists?}
+    D -->|Yes| E[Generate Trigger update_at Query]
+    D -->|No| H[Skip Trigger Query]
+    C -->|Checks| I{Enum Exists?}
+    I -->|Yes| J[Generate Enum DataType Query]
+    I -->|No| K[Skip Enum Query]
+    C -->|Uses| L[CreateTableQueryBuilder]
+    L -->|Generates| M[Create Table Query]
+    E --> |Combine|N
+    J --> |Combine|N
+    M -->|Combines| N[Combine All Queries]
+    N -->|Executes| O[Execute Combined Query in Database]
 ```
 
 ```mermaid
