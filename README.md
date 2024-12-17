@@ -34,7 +34,7 @@ Project ini dibuat sebagai kerangka kerja pribadi untuk project berbasis server 
 List all prerequisites for the project.
 
 ### Software Dependencies
-- Language: Node.js v16+
+- Language: Node.js
 - Framework: Express.js
 - Database: PostgreSQL
 
@@ -46,6 +46,7 @@ arsitektur yang digunakan dalam project ini adalah Modular Monolithic Architectu
 ### Diagram
 
 1. Table Migration
+untuk saat ini hanya create table migration yang dapat digunakan
 ```mermaid
 graph TD
     A[runMigration] -->|Invokes| B[MigrationQueryBuilder]
@@ -61,142 +62,73 @@ graph TD
     E --> |Combine|N
     J --> |Combine|N
     M -->|Combines| N[Combine All Queries]
-    N -->|Executes| O[Execute Combined Query in Database]
-```
-
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant App as Application
-    participant MQB as MigrationQueryBuilder
-    participant CTQ as CreateTableQueryBuilder
-    participant DB as Database
-
-    Dev->>App: Call runMigrations()
-    App->>MQB: Initialize MigrationQueryBuilder
-    MQB->>MQB: Generate Queries
-    MQB->>CTQ: Build Table Queries
-    CTQ->>MQB: Return Table Query
-    MQB->>MQB: Add Enum Definitions
-    MQB->>MQB: Add Trigger Queries
-    MQB->>App: Return Complete Query
-    App->>DB: Execute Query
-    DB-->>App: Return Success
-    App-->>Dev: Migration Completed
+    N -->|Executes| O[Execute Create Table Query in Database]
 ```
 
 ### Components
 1. **Express Server**: Handles HTTP requests and routes.
-2. **Sequelize ORM**: Manages database interactions.
-3. **PostgreSQL Database**: Stores application data.
+2. **PostgreSQL Database**: Stores application data.
 
 ---
 
-## Database Schema
+## Migraion Schema
 Define the database schema and relationships between tables.
 
 ### Example Schema
-- **Users**:
-  - `id`: Primary key
-  - `name`: String
-  - `email`: String (unique)
-  - `createdAt`: Timestamp
-  - `updatedAt`: Timestamp
-
-- **Posts**:
-  - `id`: Primary key
-  - `title`: String
-  - `content`: Text
-  - `userId`: Foreign key referencing `Users`
-  - `createdAt`: Timestamp
-  - `updatedAt`: Timestamp
+```javascript
+module.exports = {
+    tableName: "users",
+    timestamp: true,
+    columns: [
+        {
+            columnName: "id",
+            dataType: "INT",
+            nullable: false,
+            autoIncrement: true,
+        },
+        {
+            columnName: "roleId",
+            dataType: "INT",
+            nullable: true,
+            references: {table:'roles', key:'id'}
+        },
+        {
+            columnName: "username",
+            dataType: "VARCHAR(100)",
+            nullable: false,
+            unique: true
+        },
+        {
+            columnName: "email",
+            dataType: "VARCHAR(255)",
+            nullable: false
+        },
+        {
+            columnName: "password",
+            dataType: "VARCHAR(255)",
+            nullable: false
+        },
+        {
+            columnName: "status",
+            dataType: "ENUM('active', 'inactive', 'suspended')",
+            nullable: false,
+            default: "'active'"
+        }
+    ]
+}
+```
 
 ### Relationships
-- A user can have many posts.
-- A post belongs to a single user.
-
----
-
-## API Documentation
-
-### Endpoint 1: `GET /api/users`
-- **Description**: Fetches all users.
-- **Response**:
-```json
-[
-  {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john.doe@example.com"
-  }
-]
-```
-
-### Endpoint 2: `POST /api/users`
-- **Description**: Creates a new user.
-- **Request Body**:
-```json
-{
-  "name": "string",
-  "email": "string"
-}
-```
-- **Response**:
-```json
-{
-  "id": 1,
-  "name": "John Doe",
-  "email": "john.doe@example.com"
-}
-```
-
-### Endpoint 3: `GET /api/posts`
-- **Description**: Fetches all posts.
-- **Response**:
-```json
-[
-  {
-    "id": 1,
-    "title": "Post Title",
-    "content": "Post content",
-    "userId": 1
-  }
-]
-```
-
-### Endpoint 4: `POST /api/posts`
-- **Description**: Creates a new post.
-- **Request Body**:
-```json
-{
-  "title": "string",
-  "content": "string",
-  "userId": 1
-}
-```
-- **Response**:
-```json
-{
-  "id": 1,
-  "title": "Post Title",
-  "content": "Post content",
-  "userId": 1
-}
-```
+- A user can have one role.
+- A role belongs to many user.
 
 ---
 
 ## Setup and Installation
 
-### Clone Repository
-```bash
-git clone https://github.com/username/project-name.git
-cd project-name
-```
-
 ### Install Dependencies
 ```bash
-npm install
+npm install dwi-exoress-orm
 ```
 
 ### Configure Environment Variables
@@ -230,22 +162,8 @@ Provide examples of how to use the software.
 
 ### Run Unit Tests
 ```bash
-npm test
+npm run test
 ```
-
-### Run Integration Tests
-```bash
-npm run test:integration
-```
-
----
-
-## Contributing
-
-1. Fork the repository.
-2. Create a new branch.
-3. Make changes and test thoroughly.
-4. Submit a pull request.
 
 ---
 
